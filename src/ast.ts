@@ -47,4 +47,66 @@ export enum SyntaxKind {
   ParameterDecl,
   NumericLiteral,
   StringLiteral,
+
+  // Nodes
+  SourceFile,
+  FunctionDecl,
+  Block,
+  VariableStatement,
+  VariableDeclaration,
+  ExpressionStatement,
+  IfStatement,
+  WhileStatement,
+  ForStatement,
+  ForInStatement,
+  ReturnStatement,
+  BinaryExpression,
+  PrefixUnaryExpression,
+  PostfixUnaryExpression, // Added
+  LiteralExpression,
+  CallExpression,
+  ArrayLiteralExpression,
+  ObjectLiteralExpression,
+  PropertyAssignment,
+  PropertyAccessExpression,
+  ElementAccessExpression,
+  DeleteExpression,
+}
+
+export interface Node {
+  kind: SyntaxKind;
+  pos: number;
+  end: number;
+  parent?: Node;
+}
+
+export interface SourceFile extends Node {
+  kind: SyntaxKind.SourceFile;
+  statements: Statement[];
+  text: string;
+  locals?: Map<string, Symbol>;
+}
+
+export interface Statement extends Node {
+  _statementBrand: any;
+}
+
+export interface Expression extends Node {
+  _expressionBrand: any;
+}
+
+export interface Identifier extends Expression {
+  kind: SyntaxKind.Identifier;
+  text: string;
+}
+
+export interface VariableStatement extends Statement {
+  kind: SyntaxKind.VariableStatement;
+  declaration: VariableDeclaration;
+}
+
+export interface VariableDeclaration extends Node {
+  kind: SyntaxKind.VariableDeclaration;
+  name: Identifier;
+  initializer?: Expression;
 }

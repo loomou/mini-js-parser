@@ -8,6 +8,7 @@ export interface Scanner {
   getTokenValue(): string;
   getTokenText(): string;
   scan(): SyntaxKind;
+  lookAhead<T>(callback: () => T): T;
 }
 
 export const textToKeywordObj = {
@@ -69,6 +70,7 @@ export function createScanner(text: string): Scanner {
     getTokenValue,
     getTokenText,
     scan,
+    lookAhead,
   };
 
   function getToken(): SyntaxKind {
@@ -197,6 +199,22 @@ export function createScanner(text: string): Scanner {
           return scanIdentifier();
       }
     }
+  }
+
+  function lookAhead<T>(callback: () => T): T {
+    const savePos = pos;
+    const saveTokenPos = tokenPos;
+    const saveToken = token;
+    const saveTokenValue = tokenValue;
+
+    const res = callback();
+
+    pos = savePos;
+    tokenPos = saveTokenPos;
+    token = saveToken;
+    tokenValue = saveTokenValue;
+
+    return res;
   }
 
   function scanNumber(): SyntaxKind {

@@ -6,7 +6,7 @@ Mini-Parser 支持 JavaScript 的一个子集。以下是其 Extended Backus-Nau
 
 ```ebnf
 Identifier      ::= [a-zA-Z_$] [a-zA-Z0-9_$]*
-NumericLiteral  ::= [0-9]+
+NumericLiteral  ::= '0' | [1-9] [0-9]*
 StringLiteral   ::= '"' [^"]* '"'
 ```
 

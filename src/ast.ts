@@ -41,4 +41,10 @@ export enum SyntaxKind {
   LessThanEqualsToken, // <=
   GreaterThanToken, // >
   GreaterThanEqualsToken, // >=
+
+  // Literals & Identifiers
+  Identifier = 50,
+  ParameterDecl,
+  NumericLiteral,
+  StringLiteral,
 }

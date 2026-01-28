@@ -1,6 +1,6 @@
 # 语法定义 (Grammar)
 
-Mini-Parser 支持 JavaScript 的一个子集。以下是其 Extended Backus-Naur Form (EBNF) 描述。
+Mini-JS-Parser 支持 JavaScript 的一个子集。以下是其 Extended Backus-Naur Form (EBNF) 描述。
 
 ## 词法定义 (Lexical)
 

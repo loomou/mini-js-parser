@@ -110,3 +110,20 @@ export interface VariableDeclaration extends Node {
   name: Identifier;
   initializer?: Expression;
 }
+
+export interface FunctionDeclaration extends Statement {
+  kind: SyntaxKind.FunctionDecl;
+  name: Identifier;
+  parameters: ParameterDeclaration[];
+  body: Block;
+}
+
+export interface ParameterDeclaration extends Node {
+  kind: SyntaxKind.ParameterDecl;
+  name: Identifier;
+}
+
+export interface Block extends Statement {
+  kind: SyntaxKind.Block;
+  statements: Statement[];
+}

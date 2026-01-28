@@ -1,6 +1,9 @@
 import type {
+  Block,
   Expression,
+  FunctionDeclaration,
   Identifier,
+  ParameterDeclaration,
   SourceFile,
   Statement,
   VariableStatement,
@@ -47,6 +50,10 @@ export function createParser(text: string) {
           return parseVariableStatement();
         }
         break;
+      case SyntaxKind.FunctionKeyword:
+        return parseFunctionDeclaration();
+      case SyntaxKind.OpenBraceToken:
+        return parseBlock();
     }
     return {
       kind: SyntaxKind.ExpressionStatement,
@@ -84,6 +91,77 @@ export function createParser(text: string) {
         name: identifier,
         initializer,
       },
+      _statementBrand: null,
+    };
+  }
+
+  function parseFunctionDeclaration(): FunctionDeclaration {
+    const pos = scanner.getTokenPos();
+    nextToken();
+
+    if (curToken() !== SyntaxKind.Identifier) {
+      throw new Error('函数声明语句必须绑定一个标识符');
+    }
+    const name = parseIdentifier();
+
+    expect(SyntaxKind.OpenParenToken);
+
+    const parameters: ParameterDeclaration[] = [];
+    while (
+      curToken() !== SyntaxKind.CloseParenToken &&
+      curToken() !== SyntaxKind.EndOfFileToken
+    ) {
+      if (curToken() !== SyntaxKind.Identifier) {
+        throw new Error('函数参数必须绑定一个标识符');
+      }
+      const paramPos = scanner.getTokenPos();
+      const paramName = parseIdentifier();
+      parameters.push({
+        kind: SyntaxKind.ParameterDecl,
+        pos: paramPos,
+        end: paramName.end,
+        name: paramName,
+      });
+
+      if (curToken() === SyntaxKind.CommaToken) {
+        nextToken();
+      }
+    }
+
+    expect(SyntaxKind.CloseParenToken);
+
+    const body = parseBlock();
+
+    return {
+      kind: SyntaxKind.FunctionDecl,
+      pos,
+      end: body.end,
+      name,
+      parameters,
+      body,
+      _statementBrand: null,
+    };
+  }
+
+  function parseBlock(): Block {
+    const pos = scanner.getTokenPos();
+    nextToken();
+    const statements: Statement[] = [];
+    while (
+      curToken() !== SyntaxKind.CloseBraceToken &&
+      curToken() !== SyntaxKind.EndOfFileToken
+    ) {
+      statements.push(parseStatement());
+    }
+    if (curToken() !== SyntaxKind.CloseBraceToken) {
+      throw new Error("Expected '}'");
+    }
+    nextToken();
+    return {
+      kind: SyntaxKind.Block,
+      pos,
+      end: scanner.getTokenPos(),
+      statements,
       _statementBrand: null,
     };
   }
@@ -137,5 +215,14 @@ export function createParser(text: string) {
   function nextTokenIsBindingIdentifier(): boolean {
     nextToken();
     return isBindingIdentifier();
+  }
+
+  function expect(kind: SyntaxKind) {
+    if (curToken() !== kind) {
+      throw new Error(
+        `这里应该是 ${SyntaxKind[kind]} 但得到 ${SyntaxKind[curToken()]} 在 ${scanner.getTokenPos()}`,
+      );
+    }
+    nextToken();
   }
 }

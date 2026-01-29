@@ -46,6 +46,7 @@ const textToToken = new Map(
     '-': SyntaxKind.MinusToken,
     '*': SyntaxKind.AsteriskToken,
     '/': SyntaxKind.SlashToken,
+    '!=': SyntaxKind.ExclamationEqualsToken,
     '++': SyntaxKind.PlusPlusToken,
     '--': SyntaxKind.MinusMinusToken,
     '==': SyntaxKind.EqualsEqualsToken,
@@ -163,6 +164,12 @@ export function createScanner(text: string): Scanner {
           }
           pos++;
           return (token = SyntaxKind.EqualsToken);
+        case CharacterCodes.exclamation:
+          if (pos < end && text.charCodeAt(pos + 1) === CharacterCodes.equals) {
+            return ((pos += 2), (token = SyntaxKind.ExclamationEqualsToken));
+          }
+          pos++;
+          return (token = SyntaxKind.ExclamationEqualsToken);
         case CharacterCodes.plus:
           if (pos < end && text.charCodeAt(pos + 1) === CharacterCodes.plus) {
             return ((pos += 2), (token = SyntaxKind.PlusPlusToken));

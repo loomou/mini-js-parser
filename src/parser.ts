@@ -1,10 +1,14 @@
 import type {
+  BinaryExpression,
   Block,
   Expression,
+  ExpressionStatement,
   FunctionDeclaration,
   Identifier,
   LiteralExpression,
   ParameterDeclaration,
+  PostfixUnaryExpression,
+  PrefixUnaryExpression,
   ReturnStatement,
   SourceFile,
   Statement,
@@ -13,6 +17,7 @@ import type {
 } from './ast';
 import { SyntaxKind } from './ast';
 import { createScanner } from './scanner';
+import { getOperatorPrecedence } from './utilities';
 
 export enum ScopeFlags {
   None = 0,
@@ -70,12 +75,7 @@ export function createParser(text: string) {
       case SyntaxKind.ReturnKeyword:
         return parseReturnStatement();
     }
-    return {
-      kind: SyntaxKind.ExpressionStatement,
-      pos: 0,
-      end: 0,
-      _statementBrand: undefined,
-    };
+    return parseExpressionStatement();
   }
 
   function parseVariableStatement(): VariableStatement {
@@ -186,7 +186,7 @@ export function createParser(text: string) {
 
   function parseWhileStatement(): WhileStatement {
     const pos = scanner.getTokenPos();
-    nextToken(); // while
+    nextToken();
     expect(SyntaxKind.OpenParenToken);
     const expression = parseExpression();
     expect(SyntaxKind.CloseParenToken);
@@ -211,7 +211,7 @@ export function createParser(text: string) {
     if (curToken() !== SyntaxKind.SemicolonToken) {
       expression = parseExpression();
     }
-    expect(SyntaxKind.SemicolonToken);
+    parseSemicolon();
     return {
       kind: SyntaxKind.ReturnStatement,
       pos,
@@ -235,7 +235,81 @@ export function createParser(text: string) {
   }
 
   function parseExpression(): Expression {
-    return parsePrimaryExpression();
+    return parseBinaryExpression(0);
+  }
+
+  function parseBinaryExpression(minPrecedence: number): Expression {
+    let left = parseUnaryExpression();
+
+    while (true) {
+      const operatorToken = curToken();
+      const precedence = getOperatorPrecedence(operatorToken);
+
+      if (precedence === 0 || precedence < minPrecedence) {
+        break;
+      }
+
+      nextToken();
+      const nextMinPrecedence =
+        operatorToken === SyntaxKind.EqualsToken ? precedence : precedence + 1;
+      const right = parseBinaryExpression(nextMinPrecedence);
+
+      left = {
+        kind: SyntaxKind.BinaryExpression,
+        pos: left.pos,
+        end: right.end,
+        left,
+        operatorToken: { kind: operatorToken, pos: 0, end: 0 },
+        right,
+        _expressionBrand: null,
+      } as BinaryExpression;
+    }
+
+    return left;
+  }
+
+  function parseUnaryExpression(): Expression {
+    if (
+      curToken() === SyntaxKind.PlusPlusToken ||
+      curToken() === SyntaxKind.MinusMinusToken ||
+      curToken() === SyntaxKind.PlusToken ||
+      curToken() === SyntaxKind.MinusToken
+    ) {
+      const pos = scanner.getTokenPos();
+      const operator = curToken();
+      nextToken();
+      const operand = parseUnaryExpression();
+      return {
+        kind: SyntaxKind.PrefixUnaryExpression,
+        pos,
+        end: operand.end,
+        operator,
+        operand,
+        _expressionBrand: null,
+      } as PrefixUnaryExpression;
+    }
+
+    let expression = parsePrimaryExpression();
+
+    if (
+      curToken() === SyntaxKind.PlusPlusToken ||
+      curToken() === SyntaxKind.MinusMinusToken
+    ) {
+      const operator = curToken();
+      const pos = expression.pos;
+      const end = scanner.getTokenPos();
+      nextToken();
+      return {
+        kind: SyntaxKind.PostfixUnaryExpression,
+        pos,
+        end,
+        operand: expression,
+        operator,
+        _expressionBrand: null,
+      } as PostfixUnaryExpression;
+    }
+
+    return expression;
   }
 
   function parsePrimaryExpression(): Expression {
@@ -268,7 +342,7 @@ export function createParser(text: string) {
         _expressionBrand: null,
       } as LiteralExpression;
     } else if (curToken() === SyntaxKind.StringLiteral) {
-      const text = scanner.getTokenValue(); // scanner stripped quotes
+      const text = scanner.getTokenValue();
       nextToken();
       return {
         kind: SyntaxKind.StringLiteral,
@@ -283,6 +357,23 @@ export function createParser(text: string) {
     throw new Error(
       `Unexpected token: ${SyntaxKind[curToken()]} at position ${pos}`,
     );
+  }
+
+  function parseExpressionStatement(): ExpressionStatement {
+    const pos = scanner.getTokenPos();
+    const expression = parseExpression();
+    if (curToken() === SyntaxKind.SemicolonToken) {
+      nextToken();
+    } else {
+      parseSemicolon();
+    }
+    return {
+      kind: SyntaxKind.ExpressionStatement,
+      pos,
+      end: scanner.getTokenPos(),
+      expression,
+      _statementBrand: null,
+    };
   }
 
   function parseSemicolon() {

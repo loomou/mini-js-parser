@@ -1,14 +1,45 @@
 import { describe, it, expect } from 'vitest';
-import {
+import type {
+  BinaryExpression,
+  Expression,
+  ExpressionStatement,
   FunctionDeclaration,
   LiteralExpression,
+  PostfixUnaryExpression,
+  PrefixUnaryExpression,
   ReturnStatement,
-  SyntaxKind,
   WhileStatement,
-  createParser,
+  Node,
 } from '../src';
+import { SyntaxKind, createParser } from '../src';
 
 describe('Parser', () => {
+  function printOperatorToken(token: Node): string {
+    switch (token.kind) {
+      case SyntaxKind.PlusToken:
+        return '+';
+      case SyntaxKind.MinusToken:
+        return '-';
+      case SyntaxKind.AsteriskToken:
+        return '*';
+      case SyntaxKind.SlashToken:
+        return '/';
+      default:
+        throw new Error(`Unsupported operator token kind: ${token.kind}`);
+    }
+  }
+  function printExpression(expression: Expression): string {
+    if (expression.kind === SyntaxKind.BinaryExpression) {
+      const binaryExpr = expression as BinaryExpression;
+      return `(${printExpression(binaryExpr.left)} ${printOperatorToken(binaryExpr.operatorToken)} ${printExpression(binaryExpr.right)})`;
+    } else if (expression.kind === SyntaxKind.NumericLiteral) {
+      const literal = expression as LiteralExpression;
+      return literal.text;
+    } else {
+      throw new Error(`Unsupported expression kind: ${expression.kind}`);
+    }
+  }
+
   it('解析 let 语句', () => {
     const code = 'let a = 1;';
     const parser = createParser(code);
@@ -89,5 +120,314 @@ describe('Parser', () => {
     const expression = whileStmt.expression! as LiteralExpression;
     expect(expression.kind).toBe(SyntaxKind.TrueKeyword);
     expect(expression.text).toBe('true');
+  });
+
+  describe('解析表达式', () => {
+    it('解析 > 表达式', () => {
+      const code = '2 > 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.GreaterThanToken);
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 >= 表达式', () => {
+      const code = '2 >= 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(
+        SyntaxKind.GreaterThanEqualsToken,
+      );
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 < 表达式', () => {
+      const code = '2 < 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.LessThanToken);
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 <= 表达式', () => {
+      const code = '2 <= 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(
+        SyntaxKind.LessThanEqualsToken,
+      );
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+    });
+
+    it('解析 == 表达式', () => {
+      const code = '2 == 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.EqualsEqualsToken);
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 != 表达式', () => {
+      const code = '2 != 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(
+        SyntaxKind.ExclamationEqualsToken,
+      );
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 + 表达式', () => {
+      const code = '2 + 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.PlusToken);
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 - 表达式', () => {
+      const code = '2 - 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.MinusToken);
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 * 表达式', () => {
+      const code = '2 * 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.AsteriskToken);
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 / 表达式', () => {
+      const code = '2 / 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.SlashToken);
+      expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
+      const left = expression.left as LiteralExpression;
+      expect(left.text).toBe('2');
+      expect(left.value).toBe(2);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析前缀 ++ 表达式', () => {
+      const code = '++2;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as PrefixUnaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.PrefixUnaryExpression);
+      expect(expression.operator).toBe(SyntaxKind.PlusPlusToken);
+      expect(expression.operand.kind).toBe(SyntaxKind.NumericLiteral);
+      const operand = expression.operand as LiteralExpression;
+      expect(operand.text).toBe('2');
+      expect(operand.value).toBe(2);
+    });
+
+    it('解析前缀 -- 表达式', () => {
+      const code = '--2;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as PrefixUnaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.PrefixUnaryExpression);
+      expect(expression.operator).toBe(SyntaxKind.MinusMinusToken);
+      expect(expression.operand.kind).toBe(SyntaxKind.NumericLiteral);
+      const operand = expression.operand as LiteralExpression;
+      expect(operand.text).toBe('2');
+      expect(operand.value).toBe(2);
+    });
+
+    it('解析后缀 ++ 表达式', () => {
+      const code = '2++;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as PostfixUnaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.PostfixUnaryExpression);
+      expect(expression.operator).toBe(SyntaxKind.PlusPlusToken);
+      expect(expression.operand.kind).toBe(SyntaxKind.NumericLiteral);
+      const operand = expression.operand as LiteralExpression;
+      expect(operand.text).toBe('2');
+      expect(operand.value).toBe(2);
+    });
+
+    it('解析后缀 -- 表达式', () => {
+      const code = '2--;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as PostfixUnaryExpression;
+      expect(expression.kind).toBe(SyntaxKind.PostfixUnaryExpression);
+      expect(expression.operator).toBe(SyntaxKind.MinusMinusToken);
+      expect(expression.operand.kind).toBe(SyntaxKind.NumericLiteral);
+      const operand = expression.operand as LiteralExpression;
+      expect(operand.text).toBe('2');
+      expect(operand.value).toBe(2);
+    });
+
+    it('解析中缀表达式 1 + 2 - 3', () => {
+      const code = '1 + 2 - 3;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(printExpression(expression)).toBe('((1 + 2) - 3)');
+    });
+
+    it('解析中缀表达式 1 + 2 * 3', () => {
+      const code = '1 + 2 * 3;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as BinaryExpression;
+      expect(printExpression(expression)).toBe('(1 + (2 * 3))');
+    });
   });
 });

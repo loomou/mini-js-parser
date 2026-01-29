@@ -37,6 +37,7 @@ export enum SyntaxKind {
   PlusPlusToken, // ++
   MinusMinusToken, // --
   EqualsEqualsToken, // ==
+  ExclamationEqualsToken, // !=
   LessThanToken, // <
   LessThanEqualsToken, // <=
   GreaterThanToken, // >
@@ -62,7 +63,7 @@ export enum SyntaxKind {
   ReturnStatement,
   BinaryExpression,
   PrefixUnaryExpression,
-  PostfixUnaryExpression, // Added
+  PostfixUnaryExpression,
   LiteralExpression,
   CallExpression,
   ArrayLiteralExpression,
@@ -147,4 +148,28 @@ export interface LiteralExpression extends Expression {
     | SyntaxKind.FalseKeyword;
   value: number | string | boolean;
   text: string;
+}
+
+export interface BinaryExpression extends Expression {
+  kind: SyntaxKind.BinaryExpression;
+  left: Expression;
+  operatorToken: Node;
+  right: Expression;
+}
+
+export interface PrefixUnaryExpression extends Expression {
+  kind: SyntaxKind.PrefixUnaryExpression;
+  operator: SyntaxKind;
+  operand: Expression;
+}
+
+export interface PostfixUnaryExpression extends Expression {
+  kind: SyntaxKind.PostfixUnaryExpression;
+  operand: Expression;
+  operator: SyntaxKind;
+}
+
+export interface ExpressionStatement extends Statement {
+  kind: SyntaxKind.ExpressionStatement;
+  expression: Expression;
 }

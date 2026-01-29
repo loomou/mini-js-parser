@@ -22,6 +22,7 @@ export function getOperatorPrecedence(
     case SyntaxKind.GreaterThanToken:
     case SyntaxKind.LessThanEqualsToken:
     case SyntaxKind.GreaterThanEqualsToken:
+    case SyntaxKind.ExclamationEqualsToken:
       return OperatorPrecedence.Relational;
     case SyntaxKind.PlusToken:
     case SyntaxKind.MinusToken:

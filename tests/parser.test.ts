@@ -13,6 +13,9 @@ import type {
   VariableStatement,
   ForStatement,
   VariableDeclaration,
+  ArrayLiteralExpression,
+  ElementAccessExpression,
+  AssignmentExpression,
 } from '../src';
 import { SyntaxKind, createParser } from '../src';
 
@@ -177,9 +180,8 @@ describe('Parser', () => {
       expect(sourceFile.statements).toHaveLength(1);
       const stmt = sourceFile.statements[0] as ExpressionStatement;
       expect(stmt.kind).toBe(SyntaxKind.ExpressionStatement);
-      const expression = stmt.expression as BinaryExpression;
-      expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
-      expect(expression.operatorToken.kind).toBe(SyntaxKind.EqualsToken);
+      const expression = stmt.expression as AssignmentExpression;
+      expect(expression.kind).toBe(SyntaxKind.AssignmentExpression);
       const left = expression.left as LiteralExpression;
       expect(left.kind).toBe(SyntaxKind.Identifier);
       expect(left.text).toBe('x');
@@ -494,6 +496,90 @@ describe('Parser', () => {
       expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
       const expression = statement.expression as BinaryExpression;
       expect(printExpression(expression)).toBe('(1 + (2 * 3))');
+    });
+  });
+
+  describe('解析数组', () => {
+    it('解析空数组 []', () => {
+      const code = '[];';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as ArrayLiteralExpression;
+      expect(expression.kind).toBe(SyntaxKind.ArrayLiteralExpression);
+      expect(expression.elements).toHaveLength(0);
+    });
+
+    it('解析 a[0]', () => {
+      const code = 'a[0];';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as ElementAccessExpression;
+      expect(expression.kind).toBe(SyntaxKind.ElementAccessExpression);
+      expect(expression.expression.kind).toBe(SyntaxKind.Identifier);
+      expect(expression.argumentExpression.kind).toBe(
+        SyntaxKind.NumericLiteral,
+      );
+    });
+
+    it('解析 a[0] = 1', () => {
+      const code = 'a[0] = 1;';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as ExpressionStatement;
+      expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
+      const expression = statement.expression as AssignmentExpression;
+      expect(expression.kind).toBe(SyntaxKind.AssignmentExpression);
+      const left = expression.left as ElementAccessExpression;
+      expect(left.kind).toBe(SyntaxKind.ElementAccessExpression);
+      expect(left.expression.kind).toBe(SyntaxKind.Identifier);
+      expect(left.argumentExpression.kind).toBe(SyntaxKind.NumericLiteral);
+      const argumentExpression = left.argumentExpression as LiteralExpression;
+      expect(argumentExpression.text).toBe('0');
+      expect(argumentExpression.value).toBe(0);
+      const right = expression.right as LiteralExpression;
+      expect(right.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(right.text).toBe('1');
+      expect(right.value).toBe(1);
+    });
+
+    it('解析 let a = [1, 2, 3];', () => {
+      let code = 'let a = [1, 2, 3];';
+      const parser = createParser(code);
+      const sourceFile = parser.parseSourceFile();
+
+      expect(sourceFile.statements).toHaveLength(1);
+      const statement = sourceFile.statements[0] as VariableStatement;
+      expect(statement.kind).toBe(SyntaxKind.VariableStatement);
+      const declaration = statement.declaration as VariableDeclaration;
+      console.log(declaration);
+      expect(declaration.kind).toBe(SyntaxKind.VariableDeclaration);
+      expect(declaration.name.kind).toBe(SyntaxKind.Identifier);
+      expect(declaration.name.text).toBe('a');
+      const initializer = declaration.initializer as ArrayLiteralExpression;
+      expect(initializer.kind).toBe(SyntaxKind.ArrayLiteralExpression);
+      expect(initializer.elements).toHaveLength(3);
+      const element0 = initializer.elements[0] as LiteralExpression;
+      expect(element0.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(element0.text).toBe('1');
+      expect(element0.value).toBe(1);
+      const element1 = initializer.elements[1] as LiteralExpression;
+      expect(element1.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(element1.text).toBe('2');
+      expect(element1.value).toBe(2);
+      const element2 = initializer.elements[2] as LiteralExpression;
+      expect(element2.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(element2.text).toBe('3');
+      expect(element2.value).toBe(3);
     });
   });
 });

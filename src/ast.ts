@@ -62,6 +62,7 @@ export enum SyntaxKind {
   ForInStatement,
   ReturnStatement,
   BinaryExpression,
+  AssignmentExpression,
   PrefixUnaryExpression,
   PostfixUnaryExpression,
   LiteralExpression,
@@ -172,6 +173,12 @@ export interface BinaryExpression extends Expression {
   right: Expression;
 }
 
+export interface AssignmentExpression extends Expression {
+  kind: SyntaxKind.AssignmentExpression;
+  left: Expression;
+  right: Expression;
+}
+
 export interface PrefixUnaryExpression extends Expression {
   kind: SyntaxKind.PrefixUnaryExpression;
   operator: SyntaxKind;
@@ -182,6 +189,17 @@ export interface PostfixUnaryExpression extends Expression {
   kind: SyntaxKind.PostfixUnaryExpression;
   operand: Expression;
   operator: SyntaxKind;
+}
+
+export interface ArrayLiteralExpression extends Expression {
+  kind: SyntaxKind.ArrayLiteralExpression;
+  elements: Expression[];
+}
+
+export interface ElementAccessExpression extends Expression {
+  kind: SyntaxKind.ElementAccessExpression;
+  expression: Expression;
+  argumentExpression: Expression;
 }
 
 export interface ExpressionStatement extends Statement {

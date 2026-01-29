@@ -1,6 +1,9 @@
 import type {
+  ArrayLiteralExpression,
+  AssignmentExpression,
   BinaryExpression,
   Block,
+  ElementAccessExpression,
   Expression,
   ExpressionStatement,
   ForStatement,
@@ -251,7 +254,7 @@ export function createParser(text: string) {
 
   function parseIfStatement(): IfStatement {
     const pos = scanner.getTokenPos();
-    nextToken(); // if
+    nextToken();
     expect(SyntaxKind.OpenParenToken);
     const expression = parseExpression();
     expect(SyntaxKind.CloseParenToken);
@@ -328,15 +331,26 @@ export function createParser(text: string) {
         operatorToken === SyntaxKind.EqualsToken ? precedence : precedence + 1;
       const right = parseBinaryExpression(nextMinPrecedence);
 
-      left = {
-        kind: SyntaxKind.BinaryExpression,
-        pos: left.pos,
-        end: right.end,
-        left,
-        operatorToken: { kind: operatorToken, pos: 0, end: 0 },
-        right,
-        _expressionBrand: null,
-      } as BinaryExpression;
+      if (operatorToken === SyntaxKind.EqualsToken) {
+        left = {
+          kind: SyntaxKind.AssignmentExpression,
+          pos: left.pos,
+          end: right.end,
+          left,
+          right,
+          _expressionBrand: null,
+        } as AssignmentExpression; // Cast to avoid circular type issues if any, though AssignmentExpression should be fine
+      } else {
+        left = {
+          kind: SyntaxKind.BinaryExpression,
+          pos: left.pos,
+          end: right.end,
+          left,
+          operatorToken: { kind: operatorToken, pos: 0, end: 0 },
+          right,
+          _expressionBrand: null,
+        } as BinaryExpression;
+      }
     }
 
     return left;
@@ -363,7 +377,7 @@ export function createParser(text: string) {
       } as PrefixUnaryExpression;
     }
 
-    let expression = parsePrimaryExpression();
+    let expression = parseMemberExpression();
 
     if (
       curToken() === SyntaxKind.PlusPlusToken ||
@@ -383,6 +397,28 @@ export function createParser(text: string) {
       } as PostfixUnaryExpression;
     }
 
+    return expression;
+  }
+
+  function parseMemberExpression(): Expression {
+    let expression = parsePrimaryExpression();
+    while (true) {
+      if (curToken() === SyntaxKind.OpenBracketToken) {
+        nextToken();
+        const argumentExpression = parseExpression();
+        expect(SyntaxKind.CloseBracketToken);
+        expression = {
+          kind: SyntaxKind.ElementAccessExpression,
+          pos: expression.pos,
+          end: scanner.getTokenPos(),
+          expression,
+          argumentExpression,
+          _expressionBrand: null,
+        } as ElementAccessExpression;
+      } else {
+        break;
+      }
+    }
     return expression;
   }
 
@@ -428,11 +464,36 @@ export function createParser(text: string) {
         text,
         _expressionBrand: null,
       } as LiteralExpression;
+    } else if (curToken() === SyntaxKind.OpenBracketToken) {
+      return parseArrayLiteralExpression();
     }
 
     throw new Error(
       `Unexpected token: ${SyntaxKind[curToken()]} at position ${pos}`,
     );
+  }
+
+  function parseArrayLiteralExpression(): ArrayLiteralExpression {
+    const pos = scanner.getTokenPos();
+    nextToken(); // [
+    const elements: Expression[] = [];
+    while (
+      curToken() !== SyntaxKind.CloseBracketToken &&
+      curToken() !== SyntaxKind.EndOfFileToken
+    ) {
+      elements.push(parseExpression());
+      if (curToken() === SyntaxKind.CommaToken) {
+        nextToken();
+      }
+    }
+    expect(SyntaxKind.CloseBracketToken);
+    return {
+      kind: SyntaxKind.ArrayLiteralExpression,
+      pos,
+      end: scanner.getTokenPos(),
+      elements,
+      _expressionBrand: null,
+    };
   }
 
   function parseExpressionStatement(): ExpressionStatement {

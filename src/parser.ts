@@ -3,6 +3,7 @@ import type {
   Block,
   Expression,
   ExpressionStatement,
+  ForStatement,
   FunctionDeclaration,
   Identifier,
   LiteralExpression,
@@ -72,6 +73,8 @@ export function createParser(text: string) {
         return parseBlock();
       case SyntaxKind.WhileKeyword:
         return parseWhileStatement();
+      case SyntaxKind.ForKeyword:
+        return parseForStatement();
       case SyntaxKind.ReturnKeyword:
         return parseReturnStatement();
     }
@@ -201,6 +204,48 @@ export function createParser(text: string) {
     };
   }
 
+  function parseForStatement(): ForStatement {
+    const pos = scanner.getTokenPos();
+    nextToken();
+    expect(SyntaxKind.OpenParenToken);
+
+    let initializer: VariableStatement | Expression | undefined;
+
+    if (curToken() === SyntaxKind.LetKeyword) {
+      initializer = parseVariableStatement();
+    } else if (curToken() !== SyntaxKind.SemicolonToken) {
+      initializer = parseExpression();
+      expect(SyntaxKind.SemicolonToken);
+    } else {
+      expect(SyntaxKind.SemicolonToken);
+    }
+
+    let condition: Expression | undefined;
+    if (curToken() !== SyntaxKind.SemicolonToken) {
+      condition = parseExpression();
+    }
+    expect(SyntaxKind.SemicolonToken);
+
+    let incrementor: Expression | undefined;
+    if (curToken() !== SyntaxKind.CloseParenToken) {
+      incrementor = parseExpression();
+    }
+    expect(SyntaxKind.CloseParenToken);
+
+    const statement = parseStatement();
+
+    return {
+      kind: SyntaxKind.ForStatement,
+      pos,
+      end: statement.end,
+      initializer,
+      condition,
+      incrementor,
+      statement,
+      _statementBrand: null,
+    };
+  }
+
   function parseReturnStatement(): ReturnStatement {
     if ((scopeFlags & ScopeFlags.InFunction) === 0) {
       throw new Error('return 语句只能在函数体中使用');
@@ -314,7 +359,10 @@ export function createParser(text: string) {
 
   function parsePrimaryExpression(): Expression {
     const pos = scanner.getTokenPos();
-    if (curToken() === SyntaxKind.NumericLiteral) {
+    if (curToken() === SyntaxKind.Identifier) {
+      const id = parseIdentifier();
+      return id;
+    } else if (curToken() === SyntaxKind.NumericLiteral) {
       const val = parseFloat(scanner.getTokenValue());
       const text = scanner.getTokenText();
       nextToken();
@@ -323,6 +371,17 @@ export function createParser(text: string) {
         pos,
         end: scanner.getTokenPos(),
         value: val,
+        text,
+        _expressionBrand: null,
+      } as LiteralExpression;
+    } else if (curToken() === SyntaxKind.StringLiteral) {
+      const text = scanner.getTokenValue();
+      nextToken();
+      return {
+        kind: SyntaxKind.StringLiteral,
+        pos,
+        end: scanner.getTokenPos(),
+        value: text,
         text,
         _expressionBrand: null,
       } as LiteralExpression;
@@ -338,17 +397,6 @@ export function createParser(text: string) {
         pos,
         end: scanner.getTokenPos(),
         value: kind === SyntaxKind.TrueKeyword,
-        text,
-        _expressionBrand: null,
-      } as LiteralExpression;
-    } else if (curToken() === SyntaxKind.StringLiteral) {
-      const text = scanner.getTokenValue();
-      nextToken();
-      return {
-        kind: SyntaxKind.StringLiteral,
-        pos,
-        end: scanner.getTokenPos(),
-        value: text,
         text,
         _expressionBrand: null,
       } as LiteralExpression;

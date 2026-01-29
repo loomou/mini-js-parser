@@ -135,6 +135,14 @@ export interface WhileStatement extends Statement {
   statement: Statement;
 }
 
+export interface ForStatement extends Statement {
+  kind: SyntaxKind.ForStatement;
+  initializer?: VariableStatement | Expression; // Simplified: usually ForInitializer
+  condition?: Expression;
+  incrementor?: Expression;
+  statement: Statement;
+}
+
 export interface ReturnStatement extends Statement {
   kind: SyntaxKind.ReturnStatement;
   expression?: Expression;

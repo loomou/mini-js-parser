@@ -14,9 +14,7 @@ describe('Scanner', () => {
   }
 
   it('关键字识别', () => {
-    const tokens = scanAll(
-      'else function let if while for in return true false delete',
-    );
+    const tokens = scanAll('else function let if while for in return true false delete');
     expect(tokens).toEqual([
       SyntaxKind.ElseKeyword,
       SyntaxKind.FunctionKeyword,

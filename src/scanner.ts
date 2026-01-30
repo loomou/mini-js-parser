@@ -27,7 +27,7 @@ export const textToKeywordObj = {
 
 const textToKeyword = new Map(Object.entries(textToKeywordObj));
 
-// @ts-ignore
+// eslint-disable-next-line
 const textToToken = new Map(
   Object.entries({
     ...textToKeywordObj,
@@ -228,11 +228,7 @@ export function createScanner(text: string): Scanner {
   function scanNumber(): SyntaxKind {
     let start = pos;
 
-    if (
-      text.charCodeAt(pos) === 48 &&
-      pos + 1 < end &&
-      isDigit(text.charCodeAt(pos + 1))
-    ) {
+    if (text.charCodeAt(pos) === 48 && pos + 1 < end && isDigit(text.charCodeAt(pos + 1))) {
       error('Numeric literal cannot start with 0');
     }
 

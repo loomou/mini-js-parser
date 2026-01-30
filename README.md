@@ -4,14 +4,14 @@
 
 本项目旨在用于学习和理解编译器前端的基本原理，支持 JavaScript 的一个常用子集。
 
-## ✨ 特性
+## 特性
 
 - **零依赖**：核心解析逻辑不依赖任何第三方库。
 - **手写解析器**：采用递归下降（Recursive Descent）算法手动实现。
 - **完整流程**：包含 Scanner（词法分析器）和 Parser（语法分析器）。
 - **类型安全**：完全使用 TypeScript 编写，提供完整的 AST 类型定义。
 
-## 🚀 功能支持
+## 功能支持
 
 支持以下 JavaScript 语法特性的解析：
 
@@ -32,7 +32,7 @@
 
 详细的语法定义请参考 [Grammar 文档](./docs/grammar.md)。
 
-## 📦 安装与使用
+## 安装与使用
 
 ### 安装依赖
 
@@ -61,7 +61,7 @@ const sourceFile = parser.parseSourceFile();
 console.log(JSON.stringify(sourceFile, null, 2));
 ```
 
-## 🛠️ 开发
+## 开发
 
 本项目使用 `pnpm` 进行包管理，`vitest` 进行测试。
 
@@ -77,7 +77,7 @@ pnpm build
 pnpm test
 ```
 
-## 📂 项目结构
+## 项目结构
 
 - `src/`
   - `scanner.ts`: 词法分析器，将源代码转换为 Token 流。
@@ -87,6 +87,6 @@ pnpm test
 - `tests/`: 包含针对 Scanner 和 Parser 的单元测试。
 - `docs/`: 文档目录，包含语法定义。
 
-## 📝 License
+## License
 
-ISC
+MIT

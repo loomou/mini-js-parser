@@ -136,10 +136,7 @@ export function createParser(text: string) {
     expect(SyntaxKind.OpenParenToken);
 
     const parameters: ParameterDeclaration[] = [];
-    while (
-      curToken() !== SyntaxKind.CloseParenToken &&
-      curToken() !== SyntaxKind.EndOfFileToken
-    ) {
+    while (curToken() !== SyntaxKind.CloseParenToken && curToken() !== SyntaxKind.EndOfFileToken) {
       if (curToken() !== SyntaxKind.Identifier) {
         throw new Error('函数参数必须绑定一个标识符');
       }
@@ -179,10 +176,7 @@ export function createParser(text: string) {
     const pos = scanner.getTokenPos();
     nextToken();
     const statements: Statement[] = [];
-    while (
-      curToken() !== SyntaxKind.CloseBraceToken &&
-      curToken() !== SyntaxKind.EndOfFileToken
-    ) {
+    while (curToken() !== SyntaxKind.CloseBraceToken && curToken() !== SyntaxKind.EndOfFileToken) {
       statements.push(parseStatement());
     }
     if (curToken() !== SyntaxKind.CloseBraceToken) {
@@ -324,10 +318,7 @@ export function createParser(text: string) {
       const operatorToken = curToken();
       const precedence = getOperatorPrecedence(operatorToken);
 
-      if (
-        precedence === OperatorPrecedence.Lowest ||
-        precedence < minPrecedence
-      ) {
+      if (precedence === OperatorPrecedence.Lowest || precedence < minPrecedence) {
         break;
       }
 
@@ -397,10 +388,7 @@ export function createParser(text: string) {
 
     let expression = parseMemberExpression();
 
-    if (
-      curToken() === SyntaxKind.PlusPlusToken ||
-      curToken() === SyntaxKind.MinusMinusToken
-    ) {
+    if (curToken() === SyntaxKind.PlusPlusToken || curToken() === SyntaxKind.MinusMinusToken) {
       const operator = curToken();
       const pos = expression.pos;
       const end = scanner.getTokenPos();
@@ -499,10 +487,7 @@ export function createParser(text: string) {
         text,
         _expressionBrand: null,
       } as LiteralExpression;
-    } else if (
-      curToken() === SyntaxKind.TrueKeyword ||
-      curToken() === SyntaxKind.FalseKeyword
-    ) {
+    } else if (curToken() === SyntaxKind.TrueKeyword || curToken() === SyntaxKind.FalseKeyword) {
       const kind = curToken();
       const text = kind === SyntaxKind.TrueKeyword ? 'true' : 'false';
       nextToken();
@@ -525,9 +510,7 @@ export function createParser(text: string) {
       return expr;
     }
 
-    throw new Error(
-      `Unexpected token: ${SyntaxKind[curToken()]} at position ${pos}`,
-    );
+    throw new Error(`Unexpected token: ${SyntaxKind[curToken()]} at position ${pos}`);
   }
 
   function parseArrayLiteralExpression(): ArrayLiteralExpression {
@@ -557,10 +540,7 @@ export function createParser(text: string) {
     const pos = scanner.getTokenPos();
     nextToken(); // {
     const properties: PropertyAssignment[] = [];
-    while (
-      curToken() !== SyntaxKind.CloseBraceToken &&
-      curToken() !== SyntaxKind.EndOfFileToken
-    ) {
+    while (curToken() !== SyntaxKind.CloseBraceToken && curToken() !== SyntaxKind.EndOfFileToken) {
       properties.push(parsePropertyAssignment());
       if (curToken() === SyntaxKind.CommaToken) {
         nextToken();
@@ -593,9 +573,7 @@ export function createParser(text: string) {
         _expressionBrand: null,
       } as LiteralExpression;
     } else {
-      throw new Error(
-        'Expected identifier or string literal for property name',
-      );
+      throw new Error('Expected identifier or string literal for property name');
     }
 
     expect(SyntaxKind.ColonToken);

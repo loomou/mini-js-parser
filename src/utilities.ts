@@ -11,9 +11,7 @@ export const enum OperatorPrecedence {
   Invalid = -1,
 }
 
-export function getOperatorPrecedence(
-  operator: SyntaxKind,
-): OperatorPrecedence {
+export function getOperatorPrecedence(operator: SyntaxKind): OperatorPrecedence {
   switch (operator) {
     case SyntaxKind.CommaToken:
       return OperatorPrecedence.Comma;

@@ -19,6 +19,8 @@ import type {
   CallExpression,
   ObjectLiteralExpression,
   PropertyAccessExpression,
+  IfStatement,
+  Block,
 } from '../src';
 import { SyntaxKind, createParser } from '../src';
 
@@ -58,13 +60,14 @@ describe('Parser', () => {
       expect(sourceFile.statements).toHaveLength(1);
       const statement = sourceFile.statements[0];
       expect(statement.kind).toBe(SyntaxKind.VariableStatement);
-      const declaration = (statement as any).declaration;
+      const declaration = (statement as VariableStatement).declaration;
       expect(declaration.kind).toBe(SyntaxKind.VariableDeclaration);
       expect(declaration.name.kind).toBe(SyntaxKind.Identifier);
       expect(declaration.name.text).toBe('a');
-      expect(declaration.initializer.kind).toBe(SyntaxKind.NumericLiteral);
-      expect(declaration.initializer.text).toBe('1');
-      expect(declaration.initializer.value).toBe(1);
+      const initializer = declaration.initializer as LiteralExpression;
+      expect(initializer.kind).toBe(SyntaxKind.NumericLiteral);
+      expect(initializer.text).toBe('1');
+      expect(initializer.value).toBe(1);
     });
 
     it('解析函数声明语句', () => {
@@ -163,14 +166,15 @@ describe('Parser', () => {
     }`;
       const parser = createParser(code);
       const sourceFile = parser.parseSourceFile();
-      const stmt = sourceFile.statements[0] as any;
+      const stmt = sourceFile.statements[0] as IfStatement;
+
       expect(stmt.kind).toBe(SyntaxKind.IfStatement);
-
-      const nestedIf = stmt.elseStatement;
+      const nestedIf = stmt.elseStatement as IfStatement;
       expect(nestedIf.kind).toBe(SyntaxKind.IfStatement);
-      expect(nestedIf.expression.text).toBe('b');
-
-      const finalElse = nestedIf.elseStatement;
+      const nestedIfExpr = nestedIf.expression as LiteralExpression;
+      expect(nestedIfExpr.kind).toBe(SyntaxKind.Identifier);
+      expect(nestedIfExpr.text).toBe('b');
+      const finalElse = nestedIf.elseStatement as Block;
       expect(finalElse.kind).toBe(SyntaxKind.Block);
     });
   });
@@ -180,6 +184,7 @@ describe('Parser', () => {
       const code = 'x = 1;';
       const parser = createParser(code);
       const sourceFile = parser.parseSourceFile();
+
       expect(sourceFile.statements).toHaveLength(1);
       const stmt = sourceFile.statements[0] as ExpressionStatement;
       expect(stmt.kind).toBe(SyntaxKind.ExpressionStatement);
@@ -225,9 +230,7 @@ describe('Parser', () => {
       expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
       const expression = statement.expression as BinaryExpression;
       expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
-      expect(expression.operatorToken.kind).toBe(
-        SyntaxKind.GreaterThanEqualsToken,
-      );
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.GreaterThanEqualsToken);
       expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
       const left = expression.left as LiteralExpression;
       expect(left.text).toBe('2');
@@ -269,9 +272,7 @@ describe('Parser', () => {
       expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
       const expression = statement.expression as BinaryExpression;
       expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
-      expect(expression.operatorToken.kind).toBe(
-        SyntaxKind.LessThanEqualsToken,
-      );
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.LessThanEqualsToken);
       expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
       const left = expression.left as LiteralExpression;
       expect(left.text).toBe('2');
@@ -312,9 +313,7 @@ describe('Parser', () => {
       expect(statement.kind).toBe(SyntaxKind.ExpressionStatement);
       const expression = statement.expression as BinaryExpression;
       expect(expression.kind).toBe(SyntaxKind.BinaryExpression);
-      expect(expression.operatorToken.kind).toBe(
-        SyntaxKind.ExclamationEqualsToken,
-      );
+      expect(expression.operatorToken.kind).toBe(SyntaxKind.ExclamationEqualsToken);
       expect(expression.left.kind).toBe(SyntaxKind.NumericLiteral);
       const left = expression.left as LiteralExpression;
       expect(left.text).toBe('2');
@@ -562,9 +561,7 @@ describe('Parser', () => {
       const expression = statement.expression as ElementAccessExpression;
       expect(expression.kind).toBe(SyntaxKind.ElementAccessExpression);
       expect(expression.expression.kind).toBe(SyntaxKind.Identifier);
-      expect(expression.argumentExpression.kind).toBe(
-        SyntaxKind.NumericLiteral,
-      );
+      expect(expression.argumentExpression.kind).toBe(SyntaxKind.NumericLiteral);
     });
 
     it('解析数组元素赋值', () => {
@@ -700,18 +697,11 @@ describe('Parser', () => {
       expect(left.kind).toBe(SyntaxKind.PropertyAccessExpression);
       const leftExpression = statement.expression as AssignmentExpression;
       expect(leftExpression.kind).toBe(SyntaxKind.AssignmentExpression);
-      expect(leftExpression.left.kind).toBe(
-        SyntaxKind.PropertyAccessExpression,
-      );
-      const assignmentExpression =
-        leftExpression.left as PropertyAccessExpression;
-      expect(assignmentExpression.kind).toBe(
-        SyntaxKind.PropertyAccessExpression,
-      );
+      expect(leftExpression.left.kind).toBe(SyntaxKind.PropertyAccessExpression);
+      const assignmentExpression = leftExpression.left as PropertyAccessExpression;
+      expect(assignmentExpression.kind).toBe(SyntaxKind.PropertyAccessExpression);
       expect(assignmentExpression.expression.kind).toBe(SyntaxKind.Identifier);
-      expect((assignmentExpression.expression as LiteralExpression).text).toBe(
-        'a',
-      );
+      expect((assignmentExpression.expression as LiteralExpression).text).toBe('a');
       expect(assignmentExpression.name.kind).toBe(SyntaxKind.Identifier);
       expect(assignmentExpression.name.text).toBe('x');
       const right = expression.right as LiteralExpression;
@@ -726,17 +716,13 @@ describe('Parser', () => {
       const sourceFile = parser.parseSourceFile();
       expect(sourceFile.statements).toHaveLength(1);
       const statement = sourceFile.statements[0] as ExpressionStatement;
-      expect(statement.expression.kind).toBe(
-        SyntaxKind.PropertyAccessExpression,
+      expect(statement.expression.kind).toBe(SyntaxKind.PropertyAccessExpression);
+      expect((statement.expression as PropertyAccessExpression).expression.kind).toBe(
+        SyntaxKind.ElementAccessExpression,
       );
       expect(
-        (statement.expression as PropertyAccessExpression).expression.kind,
-      ).toBe(SyntaxKind.ElementAccessExpression);
-      expect(
-        (
-          (statement.expression as PropertyAccessExpression)
-            .expression as ElementAccessExpression
-        ).expression.kind,
+        ((statement.expression as PropertyAccessExpression).expression as ElementAccessExpression)
+          .expression.kind,
       ).toBe(SyntaxKind.PropertyAccessExpression);
     });
   });

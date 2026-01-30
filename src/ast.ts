@@ -86,15 +86,15 @@ export interface SourceFile extends Node {
   kind: SyntaxKind.SourceFile;
   statements: Statement[];
   text: string;
-  locals?: Map<string, Symbol>;
+  locals?: Map<string, symbol>;
 }
 
 export interface Statement extends Node {
-  _statementBrand: any;
+  _statementBrand: null;
 }
 
 export interface Expression extends Node {
-  _expressionBrand: any;
+  _expressionBrand: null;
 }
 
 export interface Identifier extends Expression {

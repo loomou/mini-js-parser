@@ -27,6 +27,7 @@ export const textToKeywordObj = {
 
 const textToKeyword = new Map(Object.entries(textToKeywordObj));
 
+// @ts-ignore
 const textToToken = new Map(
   Object.entries({
     ...textToKeywordObj,

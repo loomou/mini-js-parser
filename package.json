@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest",
-    "build": "tsc"
+    "build": "rolldown -c"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^25.0.10",
+    "rolldown": "1.0.0-rc.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }

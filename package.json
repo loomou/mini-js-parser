@@ -20,7 +20,7 @@
     "lint:fmt": "pnpm run lint:fix && pnpm run fmt"
   },
   "devDependencies": {
-    "@types/node": "^25.0.10",
+    "@types/node": "^25.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "oxfmt": "^0.27.0",

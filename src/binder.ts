@@ -1,5 +1,6 @@
 import {
   SyntaxKind,
+  FlowFlags,
   type FunctionDeclaration,
   type Node,
   type ParameterDeclaration,
@@ -23,13 +24,18 @@ import {
   type PropertyAccessExpression,
   type ElementAccessExpression,
   type DeleteExpression,
+  type FlowNode,
+  type LocalScope,
 } from './ast';
 
 type CbNode<T> = (node: Node) => T | undefined;
 
 export function bindSourceFile(file: SourceFile) {
   let parent: Node | undefined;
-  let currentScope = new Map<string, Symbol>();
+  let currentScope: LocalScope = new Map();
+  let currentFlow: FlowNode = {
+    flags: FlowFlags.Start,
+  };
 
   file.locals = currentScope;
 
@@ -38,6 +44,7 @@ export function bindSourceFile(file: SourceFile) {
   function bind(node: Node) {
     if (!node) return;
     node.parent = parent;
+    node.flowNode = currentFlow;
 
     const saveParent = parent;
     parent = node;
@@ -91,6 +98,9 @@ export function bindSourceFile(file: SourceFile) {
       case SyntaxKind.FunctionDecl:
         bindFunctionDeclaration(node as FunctionDeclaration);
         break;
+      case SyntaxKind.ReturnStatement:
+        bindReturnStatement(node as ReturnStatement);
+        break;
       default:
         forEachChild(node, bind);
         break;
@@ -118,28 +128,105 @@ export function bindSourceFile(file: SourceFile) {
     symbol.declarations.push(declaration);
   }
 
+  function createFlowCondition(flags: FlowFlags, expression: Node): FlowNode {
+    const flow: FlowNode = {
+      flags,
+      antecedent: currentFlow,
+      node: expression,
+    };
+    return flow;
+  }
+
+  function createFlowLabel(): FlowNode {
+    const flow: FlowNode = {
+      flags: FlowFlags.BranchLabel,
+      antecedents: [],
+    };
+    return flow;
+  }
+
   function bindIfStatement(node: IfStatement) {
     bind(node.expression);
+
+    currentFlow = createFlowCondition(FlowFlags.TrueCondition, node.expression);
     bind(node.thenStatement);
+    const thenFlow = currentFlow;
+
+    currentFlow = createFlowCondition(FlowFlags.FalseCondition, node.expression);
     if (node.elseStatement) bind(node.elseStatement);
+    const elseFlow = currentFlow;
+
+    const mergeNode = createFlowLabel();
+    if (mergeNode.antecedents) {
+      mergeNode.antecedents.push(thenFlow);
+      mergeNode.antecedents.push(elseFlow);
+    }
+    currentFlow = mergeNode;
+
+    if (thenFlow.flags & FlowFlags.Unreachable && elseFlow.flags & FlowFlags.Unreachable) {
+      currentFlow.flags |= FlowFlags.Unreachable;
+    }
   }
 
   function bindWhileStatement(node: WhileStatement) {
+    const preLoopFlow = currentFlow;
+
+    const loopLabel = createFlowLabel();
+    if (loopLabel.antecedents) {
+      loopLabel.antecedents.push(preLoopFlow);
+    }
+
     bind(node.expression);
+
+    currentFlow = createFlowCondition(FlowFlags.TrueCondition, node.expression);
     bind(node.statement);
+
+    if (loopLabel.antecedents) {
+      loopLabel.antecedents.push(currentFlow);
+    }
+
+    currentFlow = createFlowCondition(FlowFlags.FalseCondition, node.expression);
+    currentFlow.antecedent = loopLabel;
   }
 
   function bindForStatement(node: ForStatement) {
     if (node.initializer) bind(node.initializer);
+
+    const preLoopFlow = currentFlow;
+    const loopLabel = createFlowLabel();
+    if (loopLabel.antecedents) loopLabel.antecedents.push(preLoopFlow);
+    currentFlow = loopLabel;
+
     if (node.condition) bind(node.condition);
+
+    currentFlow = createFlowCondition(FlowFlags.TrueCondition, node.condition || node);
     bind(node.statement);
+
     if (node.incrementor) bind(node.incrementor);
+
+    if (loopLabel.antecedents) loopLabel.antecedents.push(currentFlow);
+
+    currentFlow = createFlowCondition(FlowFlags.FalseCondition, node.condition || node);
+    currentFlow.antecedent = loopLabel;
   }
 
   function bindForInStatement(node: ForInStatement) {
     bind(node.expression);
+
+    const preLoopFlow = currentFlow;
+    const loopLabel = createFlowLabel();
+    if (loopLabel.antecedents) loopLabel.antecedents.push(preLoopFlow);
+    currentFlow = loopLabel;
+
     bind(node.initializer);
+
+    currentFlow = createFlowCondition(FlowFlags.TrueCondition, node.expression);
     bind(node.statement);
+
+    if (loopLabel.antecedents) loopLabel.antecedents.push(currentFlow);
+
+    currentFlow = createFlowCondition(FlowFlags.FalseCondition, node.expression);
+    currentFlow.antecedent = loopLabel;
   }
 
   function bindFunctionDeclaration(node: FunctionDeclaration) {
@@ -148,6 +235,14 @@ export function bindSourceFile(file: SourceFile) {
       for (const param of node.parameters) bind(param);
     }
     if (node.body) bind(node.body);
+  }
+
+  function bindReturnStatement(node: ReturnStatement) {
+    forEachChild(node, bind);
+    currentFlow = {
+      flags: FlowFlags.Unreachable,
+      antecedent: currentFlow,
+    };
   }
 }
 

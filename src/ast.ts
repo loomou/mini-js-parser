@@ -75,18 +75,44 @@ export enum SyntaxKind {
   DeleteExpression,
 }
 
+export enum FlowFlags {
+  Unreachable = 1 << 0,
+  Start = 1 << 1,
+  BranchLabel = 1 << 2,
+  LoopLabel = 1 << 3,
+  Assignment = 1 << 4,
+  TrueCondition = 1 << 5,
+  FalseCondition = 1 << 6,
+  SwitchClause = 1 << 7,
+  ArrayMutation = 1 << 8,
+  Call = 1 << 9,
+  ReduceLabel = 1 << 10,
+  Referenced = 1 << 11,
+  Shared = 1 << 12,
+}
+
+export type LocalScope = Map<string, Symbol>;
+
+export interface FlowNode {
+  flags: FlowFlags;
+  antecedent?: FlowNode;
+  antecedents?: FlowNode[];
+  node?: Node;
+}
+
 export interface Node {
   kind: SyntaxKind;
   pos: number;
   end: number;
   parent?: Node;
+  flowNode?: FlowNode;
 }
 
 export interface SourceFile extends Node {
   kind: SyntaxKind.SourceFile;
   statements: Statement[];
   text: string;
-  locals?: Map<string, Symbol>;
+  locals?: LocalScope;
 }
 
 export interface Statement extends Node {

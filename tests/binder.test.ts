@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import type {
   Block,
   ForInStatement,
@@ -8,7 +9,6 @@ import type {
   VariableStatement,
   WhileStatement,
 } from '../src';
-import { describe, it, expect } from 'vitest';
 import { createParser, bindSourceFile, SyntaxKind, FlowFlags } from '../src';
 
 describe('Binder', () => {
@@ -48,7 +48,6 @@ describe('Binder', () => {
       const code = 'let x = 1; { let y = 2; }';
       const sourceFile = parseAndBind(code);
 
-      console.log(sourceFile.locals);
       expect(sourceFile.locals!.has('x')).toBe(true);
       expect(sourceFile.locals!.has('y')).toBe(false);
 

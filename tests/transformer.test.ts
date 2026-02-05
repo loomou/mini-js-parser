@@ -1,23 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { createParser } from '../src/parser';
-import { transform, type TransformerFactory, type TransformationContext } from '../src/transformer';
-import {
-  SyntaxKind,
-  type Node,
-  type Identifier,
-  type VariableStatement,
-  type FunctionDeclaration,
-  type ReturnStatement,
-  type Block,
-  type ExpressionStatement,
-  type BinaryExpression,
-  type ForStatement,
-  type WhileStatement,
-  type LiteralExpression,
-  type Statement,
-  type Expression,
+import type {
+  Node,
+  Identifier,
+  VariableStatement,
+  FunctionDeclaration,
+  ReturnStatement,
+  Block,
+  ExpressionStatement,
+  BinaryExpression,
+  ForStatement,
+  WhileStatement,
+  LiteralExpression,
+  Statement,
+  Expression,
   IfStatement,
-} from '../src/ast';
+  TransformerFactory,
+  TransformationContext,
+} from '../src';
+import { SyntaxKind, createParser, transform } from '../src';
 
 describe('Transformer', () => {
   it('如果未进行更改，应返回相同的源文件', () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { ErrorWithCause } from '../src';
 import {
   createReport,
   span,
@@ -9,8 +10,9 @@ import {
   Red,
   Yellow,
   Blue,
-} from '../src/diagnostics';
-import { createParser, ErrorWithCause, report } from '../src';
+  createParser,
+  report,
+} from '../src';
 
 describe('Report', () => {
   it('报告生成', () => {

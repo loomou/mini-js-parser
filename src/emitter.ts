@@ -22,21 +22,39 @@ import type {
   ElementAccessExpression,
   AssignmentExpression,
   LiteralExpression,
-  PostfixUnaryExpression, // Added
+  PostfixUnaryExpression,
+  Node,
 } from './ast';
 import { SyntaxKind } from './ast';
+import { sourceMapGenerator } from './sourcemap';
 
-export interface Printer {
-  printFile(sourceFile: SourceFile): string;
+export interface PrinterOptions {
+  fileName?: string;
+  sourceMap?: boolean;
+  minify?: boolean;
 }
 
-export function createPrinter(): Printer {
+export function createPrinter(options: PrinterOptions = {}) {
   let output = '';
   let indentLevel = 0;
+  let line = 1;
+  let column = 0;
+  let smg: ReturnType<typeof sourceMapGenerator> | undefined;
+
+  if (options.sourceMap && options.fileName) {
+    smg = sourceMapGenerator(options.fileName);
+  }
+
+  return {
+    printFile,
+    getSourceMap,
+  };
 
   function printFile(sourceFile: SourceFile): string {
     output = '';
     indentLevel = 0;
+    line = 1;
+    column = 0;
 
     for (const stmt of sourceFile.statements) {
       printStatement(stmt);
@@ -45,8 +63,24 @@ export function createPrinter(): Printer {
     return output;
   }
 
-  function write(text: string) {
+  function getSourceMap(): string | undefined {
+    return smg?.toString();
+  }
+
+  function write(text: string, node?: Node) {
+    if (node && smg && node.pos >= 0) {
+      smg.addMapping(line, column, 1, 0);
+    }
+
     output += text;
+    for (const char of text) {
+      if (char === '\n') {
+        line++;
+        column = 0;
+      } else {
+        column++;
+      }
+    }
   }
 
   function indent() {
@@ -58,7 +92,9 @@ export function createPrinter(): Printer {
   }
 
   function writeIndent() {
-    write('  '.repeat(indentLevel));
+    if (!options.minify) {
+      write('  '.repeat(indentLevel));
+    }
   }
 
   function printStatement(stmt: Statement) {
@@ -90,6 +126,7 @@ export function createPrinter(): Printer {
         break;
     }
     if (
+      !options.minify &&
       stmt.kind !== SyntaxKind.Block &&
       stmt.kind !== SyntaxKind.IfStatement &&
       stmt.kind !== SyntaxKind.FunctionDecl &&
@@ -97,12 +134,19 @@ export function createPrinter(): Printer {
       stmt.kind !== SyntaxKind.ForStatement
     ) {
       write(';\n');
+    } else if (
+      options.minify &&
+      (stmt.kind === SyntaxKind.ExpressionStatement ||
+        stmt.kind === SyntaxKind.VariableStatement ||
+        stmt.kind === SyntaxKind.ReturnStatement)
+    ) {
+      write(';');
     }
   }
 
   function printBlock(block: Block) {
     write('{');
-    write('\n');
+    if (!options.minify) write('\n');
     indent();
     for (const stmt of block.statements) {
       printStatement(stmt);
@@ -110,42 +154,42 @@ export function createPrinter(): Printer {
     dedent();
     writeIndent();
     write('}');
-    write('\n');
+    if (!options.minify) write('\n');
   }
 
   function printVariableStatement(stmt: VariableStatement) {
-    write('let ');
+    write('let ', stmt);
     printVariableDeclaration(stmt.declaration);
   }
 
   function printVariableDeclaration(decl: VariableDeclaration) {
     printIdentifier(decl.name);
     if (decl.initializer) {
-      write(' = ');
+      write(options.minify ? '=' : ' = ');
       printExpression(decl.initializer);
     }
   }
 
   function printFunctionDeclaration(func: FunctionDeclaration) {
-    write('function ');
+    write('function ', func);
     printIdentifier(func.name);
     write('(');
     func.parameters.forEach((param, index) => {
       printIdentifier(param.name);
-      if (index < func.parameters.length - 1) write(', ');
+      if (index < func.parameters.length - 1) write(options.minify ? ',' : ', ');
     });
     write(')');
-    write(' ');
+    if (!options.minify) write(' ');
     printBlock(func.body);
   }
 
   function printIfStatement(stmt: IfStatement) {
-    write('if');
-    write(' ');
+    write('if', stmt);
+    if (!options.minify) write(' ');
     write('(');
     printExpression(stmt.expression);
     write(')');
-    write(' ');
+    if (!options.minify) write(' ');
 
     if (stmt.thenStatement.kind === SyntaxKind.Block) {
       printBlock(stmt.thenStatement as Block);
@@ -154,9 +198,9 @@ export function createPrinter(): Printer {
     }
 
     if (stmt.elseStatement) {
-      write(' ');
+      if (!options.minify) write(' ');
       write('else');
-      write(' ');
+      if (!options.minify) write(' ');
       if (
         stmt.elseStatement.kind === SyntaxKind.Block ||
         stmt.elseStatement.kind === SyntaxKind.IfStatement
@@ -173,12 +217,12 @@ export function createPrinter(): Printer {
   }
 
   function printWhileStatement(stmt: WhileStatement) {
-    write('while');
-    write(' ');
+    write('while', stmt);
+    if (!options.minify) write(' ');
     write('(');
     printExpression(stmt.expression);
     write(')');
-    write(' ');
+    if (!options.minify) write(' ');
     if (stmt.statement.kind === SyntaxKind.Block) {
       printBlock(stmt.statement as Block);
     } else {
@@ -187,8 +231,8 @@ export function createPrinter(): Printer {
   }
 
   function printForStatement(stmt: ForStatement) {
-    write('for');
-    write(' ');
+    write('for', stmt);
+    if (!options.minify) write(' ');
     write('(');
     if (stmt.initializer) {
       if (stmt.initializer.kind === SyntaxKind.VariableStatement) {
@@ -200,16 +244,16 @@ export function createPrinter(): Printer {
     }
     write(';');
     if (stmt.condition) {
-      write(' ');
+      if (!options.minify) write(' ');
       printExpression(stmt.condition);
     }
     write(';');
     if (stmt.incrementor) {
-      write(' ');
+      if (!options.minify) write(' ');
       printExpression(stmt.incrementor);
     }
     write(')');
-    write(' ');
+    if (!options.minify) write(' ');
     if (stmt.statement.kind === SyntaxKind.Block) {
       printBlock(stmt.statement as Block);
     } else {
@@ -218,7 +262,7 @@ export function createPrinter(): Printer {
   }
 
   function printReturnStatement(stmt: ReturnStatement) {
-    write('return');
+    write('return', stmt);
     if (stmt.expression) {
       write(' ');
       printExpression(stmt.expression);
@@ -272,13 +316,17 @@ export function createPrinter(): Printer {
 
   function printBinaryExpression(expr: BinaryExpression) {
     printExpression(expr.left);
-    write(` ${getOperator(expr.operatorToken.kind)} `);
+    write(
+      options.minify
+        ? getOperator(expr.operatorToken.kind)
+        : ` ${getOperator(expr.operatorToken.kind)} `,
+    );
     printExpression(expr.right);
   }
 
   function printAssignmentExpression(expr: AssignmentExpression) {
     printExpression(expr.left);
-    write(' = ');
+    write(options.minify ? '=' : ' = ');
     printExpression(expr.right);
   }
 
@@ -314,14 +362,14 @@ export function createPrinter(): Printer {
   }
 
   function printIdentifier(node: Identifier) {
-    write(node.text);
+    write(node.text, node);
   }
 
   function printLiteral(node: LiteralExpression) {
     if (node.kind === SyntaxKind.StringLiteral) {
-      write(`"${node.value}"`);
+      write(`"${node.value}"`, node);
     } else {
-      write(node.text || node.value.toString());
+      write(node.text || node.value.toString(), node);
     }
   }
 
@@ -330,7 +378,7 @@ export function createPrinter(): Printer {
     write('(');
     expr.arguments.forEach((arg, i) => {
       printExpression(arg);
-      if (i < expr.arguments.length - 1) write(', ');
+      if (i < expr.arguments.length - 1) write(options.minify ? ',' : ', ');
     });
     write(')');
   }
@@ -339,7 +387,7 @@ export function createPrinter(): Printer {
     write('[');
     expr.elements.forEach((el, i) => {
       printExpression(el);
-      if (i < expr.elements.length - 1) write(', ');
+      if (i < expr.elements.length - 1) write(options.minify ? ',' : ', ');
     });
     write(']');
   }
@@ -349,7 +397,7 @@ export function createPrinter(): Printer {
     if (expr.properties.length > 0) write(' ');
     expr.properties.forEach((prop, i) => {
       printPropertyAssignment(prop);
-      if (i < expr.properties.length - 1) write(', ');
+      if (i < expr.properties.length - 1) write(options.minify ? ',' : ', ');
     });
     if (expr.properties.length > 0) write(' ');
     write('}');
@@ -361,7 +409,7 @@ export function createPrinter(): Printer {
     } else {
       printLiteral(prop.name);
     }
-    write(': ');
+    write(options.minify ? ':' : ': ');
     printExpression(prop.initializer);
   }
 
@@ -387,8 +435,4 @@ export function createPrinter(): Printer {
     printExpression(expr.operand);
     write(getOperator(expr.operator));
   }
-
-  return {
-    printFile,
-  };
 }

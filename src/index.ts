@@ -6,5 +6,6 @@ export * from './binder';
 export * from './transformer';
 export * from './factory';
 export * from './emitter';
-
+export * from './minifier';
 export * from './diagnostics';
+export * from './transformers';

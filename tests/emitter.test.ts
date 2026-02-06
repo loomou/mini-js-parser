@@ -21,10 +21,10 @@ import {
 } from '../src';
 
 describe('Emitter', () => {
-  function transformCode(code: string, plugins?: TransformerFactory[]) {
+  function transformCode(code: string, plugins: TransformerFactory[] = []) {
     const sourceFile = createParser(code).parseSourceFile();
     bindSourceFile(sourceFile);
-    const transformedSourceFile = transform(sourceFile, [...(plugins || [])]);
+    const transformedSourceFile = transform(sourceFile, plugins);
     const printer = createPrinter();
     const output = printer.printFile(transformedSourceFile);
     return output;
@@ -190,6 +190,18 @@ describe('Emitter', () => {
       const output = transformCode(code, [deadCodeEliminationTransformer()]);
 
       expect(output).not.toContain('let z = 3;');
+    });
+
+    it('常量折叠简单表达式', () => {
+      const code = `
+        let x = 1 + 2 * 3;
+        let y = "a" + "b";
+      `;
+
+      const output = transformCode(code, [constantFoldingTransformer()]);
+
+      expect(output).toContain('let x = 7;');
+      expect(output).toContain('let y = "ab";');
     });
 
     it('结合常量折叠消除死代码', () => {

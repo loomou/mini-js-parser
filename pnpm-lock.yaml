@@ -33,6 +33,22 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@25.0.10)(yaml@2.8.2)
 
+  docs: {}
+
+  example:
+    dependencies:
+      mini-js-parser:
+        specifier: workspace:*
+        version: link:../packages/mini-js-parser
+
+  packages/diagnostics: {}
+
+  packages/mini-js-parser:
+    dependencies:
+      '@mini-js-parser/diagnostics':
+        specifier: workspace:*
+        version: link:../diagnostics
+
 packages:
 
   '@emnapi/core@1.8.1':

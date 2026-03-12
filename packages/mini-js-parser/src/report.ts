@@ -7,7 +7,7 @@ import {
   createSourceCache,
   createLabel,
   Red,
-} from './diagnostics';
+} from '@mini-js-parser/diagnostics';
 import type { SyntaxKind } from './ast';
 
 export interface TokenMsg {

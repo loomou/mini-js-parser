@@ -1,0 +1,14 @@
+{
+  "name": "@mini-js-parser/diagnostics",
+  "version": "0.0.1",
+  "description": "Diagnostics module for mini-js-parser",
+  "keywords": [],
+  "license": "MIT",
+  "author": "",
+  "main": "dist/diagnostics.cjs.js",
+  "module": "dist/diagnostics.esm.js",
+  "scripts": {
+    "test": "vitest",
+    "build": "rolldown -c rolldown.config.ts"
+  }
+}

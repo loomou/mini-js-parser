@@ -7,6 +7,6 @@ export * from './transformer';
 export * from './factory';
 export * from './emitter';
 export * from './minifier';
-export * from './diagnostics';
+export * from '@mini-js-parser/diagnostics';
 export * from './transformers';
 export * from './compiler';

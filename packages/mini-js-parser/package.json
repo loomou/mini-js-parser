@@ -1,0 +1,16 @@
+{
+  "name": "@mini-js-parser/core",
+  "version": "0.0.1",
+  "description": "A mini JavaScript parser",
+  "license": "MIT",
+  "main": "dist/mini-js-parser.cjs.js",
+  "module": "dist/mini-js-parser.esm.js",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "build": "rolldown -c rolldown.config.ts"
+  },
+  "dependencies": {
+    "@mini-js-parser/diagnostics": "workspace:*"
+  }
+}

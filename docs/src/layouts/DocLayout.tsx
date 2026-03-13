@@ -24,7 +24,7 @@ export function DocLayout(props: ParentProps) {
         </article>
       </div>
 
-      <div class="top-nav sticky h-[calc(100vh-var(--nav-height))] w-66 overflow-y-auto p-6 max-xl:hidden">
+      <div class="top-nav sticky h-[calc(100vh-var(--nav-height))] w-66 overflow-y-auto p-6 max-xl:hidden border-l border-zinc-200 dark:border-zinc-700">
         <Aside />
       </div>
 

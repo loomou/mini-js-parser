@@ -1,10 +1,11 @@
 import { Show } from 'solid-js';
-import type { TableOfContentsItemData } from '@kobalte/solidbase/client';
+import { useCurrentPageData } from '@kobalte/solidbase/client';
 import OutlineListIcon from '~/assets/svg/outline-list.svg?component-solid';
-import { TocTree } from '../toc/TocTree';
+import { Toc } from '../toc/Toc';
 
-export function AsideToc(props: { toc: TableOfContentsItemData[] }) {
-  const hasToc = () => props.toc.length > 0;
+export function AsideToc() {
+  const pageData = useCurrentPageData();
+  const hasToc = () => (pageData()?.toc ?? []).length > 0;
 
   return (
     <Show when={hasToc()}>
@@ -19,10 +20,10 @@ export function AsideToc(props: { toc: TableOfContentsItemData[] }) {
             <OutlineListIcon class="block size-4" aria-hidden="true" />
             On this page
           </div>
-          <TocTree
-            toc={props.toc}
-            getListClass={(depth) => (depth === 0 ? 'relative z-10' : 'pl-4 pr-4')}
-            linkClass="outline-link block leading-7 text-[13px] font-normal text-gray-600 dark:text-slate-300 whitespace-nowrap overflow-hidden text-defaultllipsis no-underline hover:text-default dark:hover:text-electric hover:duration-250 [&.active]:text-default dark:[&.active]:text-electric [&.active]:duration-250"
+          <Toc
+            listClass="relative z-10"
+            itemClass="pr-4"
+            linkClass="outline-link block overflow-hidden text-ellipsis whitespace-nowrap leading-7 text-[13px] font-normal text-gray-600 no-underline hover:text-electric hover:duration-250 dark:text-slate-300 dark:hover:text-default [&.active]:text-electric [&.active]:duration-250 dark:[&.active]:text-default"
           />
         </div>
       </nav>

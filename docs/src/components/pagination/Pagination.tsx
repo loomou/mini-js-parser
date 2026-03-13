@@ -23,7 +23,7 @@ export function Pagination() {
             <Show when={prev()}>
               {(item) => (
                 <a
-                  class="pager-link block rounded-lg border border-zinc-200 px-4 py-3 no-underline transition-colors duration-250 hover:border-electric dark:border-zinc-700 dark:hover:border-default"
+                  class="pager-link block rounded-lg border border-zinc-200 px-4 py-3 no-underline hover:border-electric dark:border-zinc-700 dark:hover:border-default"
                   href={normalizeLink(item().link)}
                 >
                   <span class=" block text-xs font-medium text-gray-600 dark:text-slate-300">
@@ -40,7 +40,7 @@ export function Pagination() {
             <Show when={next()}>
               {(item) => (
                 <a
-                  class="pager-link next ml-auto block rounded-lg border border-zinc-200 px-4 py-3 text-right no-underline transition-colors duration-250 hover:border-electric dark:border-zinc-700 dark:hover:border-default"
+                  class="pager-link next ml-auto block rounded-lg border border-zinc-200 px-4 py-3 text-right no-underline hover:border-electric dark:border-zinc-700 dark:hover:border-default"
                   href={normalizeLink(item().link)}
                 >
                   <span class="desc block text-xs font-medium text-gray-600 dark:text-slate-300">

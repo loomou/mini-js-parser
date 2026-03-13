@@ -1,4 +1,3 @@
-import { type TableOfContentsItemData, useCurrentPageData } from '@kobalte/solidbase/client';
 import MenuIcon from '~/assets/svg/menu.svg?component-solid';
 import { MobileNavBarDropdown } from './MobileNavBarDropdown';
 
@@ -9,9 +8,6 @@ export function MobileNav(props: {
   returnToTopLabel?: string;
   menuLabel?: string;
 }) {
-  const pageData = useCurrentPageData();
-  const toc = (): TableOfContentsItemData[] => pageData()?.toc ?? [];
-
   return (
     <div class="sticky z-40 w-full border-b border-zinc-200 bg-slate-50 dark:border-zinc-700 dark:bg-slate-900">
       <div class="flex items-center justify-between px-6 py-3">
@@ -25,11 +21,7 @@ export function MobileNav(props: {
           <MenuIcon class="block size-4" aria-hidden="true" />
           <span class="menu-text">{props.menuLabel ?? 'Menu'}</span>
         </button>
-        <MobileNavBarDropdown
-          toc={toc()}
-          title={props.title}
-          returnToTopLabel={props.returnToTopLabel}
-        />
+        <MobileNavBarDropdown title={props.title} returnToTopLabel={props.returnToTopLabel} />
       </div>
     </div>
   );

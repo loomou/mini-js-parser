@@ -1,24 +1,21 @@
 import { Show, createSignal } from 'solid-js';
-import type { TableOfContentsItemData } from '@kobalte/solidbase/client';
+import { useCurrentPageData } from '@kobalte/solidbase/client';
 import ChevronRightIcon from '~/assets/svg/chevron-right.svg?component-solid';
 import { useClickOutside } from '~/hooks/useClickOutside';
 import { useEscapeClose } from '~/hooks/useEscapeClose';
 import { useRoutePathClose } from '~/hooks/useRoutePathClose';
 import { cn } from '~/utils/cn';
-import { TocTree } from '../toc/TocTree';
+import { Toc } from '../toc/Toc';
 
-export function MobileNavBarDropdown(props: {
-  toc: TableOfContentsItemData[];
-  title?: string;
-  returnToTopLabel?: string;
-}) {
+export function MobileNavBarDropdown(props: { title?: string; returnToTopLabel?: string }) {
   const [open, setOpen] = createSignal(false);
+  const pageData = useCurrentPageData();
   let mainEl: HTMLDivElement | undefined;
   let itemsEl: HTMLDivElement | undefined;
 
   const title = () => props.title ?? 'On this page';
   const returnToTopLabel = () => props.returnToTopLabel ?? 'Return to top';
-  const hasToc = () => props.toc.length > 0;
+  const hasToc = () => (pageData()?.toc ?? []).length > 0;
 
   const close = () => setOpen(false);
 
@@ -83,7 +80,7 @@ export function MobileNavBarDropdown(props: {
         >
           <div>
             <a
-              class="block px-4 text-sm leading-12 font-medium text-default dark:text-electric"
+              class="block px-4 text-sm leading-12 font-medium text-electric dark:text-default"
               href="#"
               onClick={scrollToTop}
             >
@@ -91,10 +88,10 @@ export function MobileNavBarDropdown(props: {
             </a>
           </div>
           <div class="py-2 outline outline-slate-200 dark:outline-slate-700">
-            <TocTree
-              toc={props.toc}
-              getListClass={() => 'mt-1 space-y-1 pl-4 text-[13px]'}
-              linkClass="outline-link block leading-6 text-gray-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-50"
+            <Toc
+              listClass="mt-1 space-y-1 text-[13px]"
+              itemClass="pl-4 pr-4"
+              linkClass="outline-link block leading-6 text-gray-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50 [&.active]:text-electric dark:[&.active]:text-default"
             />
           </div>
         </div>

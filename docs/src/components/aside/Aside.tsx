@@ -1,5 +1,4 @@
 import type { JSX } from 'solid-js';
-import { useCurrentPageData } from '@kobalte/solidbase/client';
 import { AsideToc } from './AsideToc';
 
 export function Aside(props: {
@@ -10,14 +9,11 @@ export function Aside(props: {
   asideAdsBefore?: JSX.Element;
   asideAdsAfter?: JSX.Element;
 }) {
-  const pageData = useCurrentPageData();
-  const toc = () => pageData()?.toc ?? [];
-
   return (
     <div class="flex grow flex-col">
       {props.asideTop}
       {props.asideOutlineBefore}
-      <AsideToc toc={toc()} />
+      <AsideToc />
       {props.asideOutlineAfter}
       <div class="spacer grow" />
       {props.asideAdsBefore}

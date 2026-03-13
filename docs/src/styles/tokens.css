@@ -1,0 +1,35 @@
+@theme {
+  --font-*: initial;
+  --font-heading: "APK Protocol", sans-serif;
+  --font-sans: Inter, sans-serif;
+  --font-mono: "KH Teka Mono", monospace;
+
+  --color-default: #1669bb;
+  --color-electric: #82aaff;
+  --color-royal-blue: #4169e1;
+  --color-cornflower-blue: #6495ed;
+
+  --nav-height: 82px;
+  --sidebar-width: 272px;
+}
+
+:root {
+  --sd-code-font-size: 0.875rem;
+  --sd-code-line-height: 1.7;
+  --sd-vh: 100vh;
+  --icon: none;
+}
+
+@layer utilities {
+  .h-nav {
+    height: var(--nav-height);
+  }
+
+  .w-sidebar {
+    width: var(--sidebar-width);
+  }
+
+  .top-nav {
+    top: var(--nav-height);
+  }
+}

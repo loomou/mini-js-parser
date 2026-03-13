@@ -1,0 +1,8 @@
+{
+  "extends": "../.oxfmtrc.json",
+  "sortTailwindcss": {
+    "stylesheet": "./src/styles/index.css",
+    "functions": ["clsx", "cn"],
+    "preserveWhitespace": true
+  }
+}

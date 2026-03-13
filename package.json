@@ -16,6 +16,8 @@
     "run:core": "pnpm test:core && pnpm build:core",
     "run:action": "pnpm run:diagnostics && pnpm run:core",
     "build": "pnpm -r build",
+    "dev:docs": "pnpm -F @mini-js-parser/docs dev",
+    "build:docs": "pnpm -F @mini-js-parser/docs build",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix --deny-warnings",
     "lint:github": "oxlint --format=github",

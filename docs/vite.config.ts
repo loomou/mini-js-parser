@@ -40,8 +40,13 @@ export default defineConfig({
         },
       },
     }),
-    solidStart(solidbase.startConfig()),
+    solidStart(
+      solidbase.startConfig({
+        ssr: true,
+      }),
+    ),
     nitro({
+      preset: 'netlify',
       prerender: {
         crawlLinks: true,
       },

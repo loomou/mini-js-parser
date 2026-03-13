@@ -28,7 +28,7 @@ jobs:
         run: pnpm lint:github
 
       - name: Run tests
-        run: test:core
+        run: pnpm test:core
 
       - name: Build project
         run: pnpm build:core

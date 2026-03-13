@@ -15,20 +15,26 @@
 ## 核心模块
 
 ### 1. 解析器 (Parser)
+
 将源代码解析为抽象语法树 (AST)。
+
 - 支持变量声明 (let)、函数声明
 - 支持控制流 (if, while, for, return)
 - 支持各类表达式和字面量
 
 ### 2. 绑定器 (Binder)
+
 处理作用域和符号定义，建立 AST 节点与符号 (Symbol) 之间的联系，支持控制流分析 (Control Flow Analysis)。
 
 ### 3. 转换器 (Transformer)
+
 提供 AST 转换框架，内置以下转换插件：
+
 - **死代码消除 (Dead Code Elimination)**: 移除不可达代码和未使用的变量/函数。
 - **常量折叠 (Constant Folding)**: 编译期计算常量表达式。
 
 ### 4. 代码生成器 (Emitter)
+
 将 AST 转换回 JavaScript 代码，并支持生成 Source Map。
 
 ## 安装与使用
@@ -57,7 +63,7 @@ const result = compile(code, {
   filename: 'example.js',
   sourceMap: true,
   minify: false, // 开启 minify 会自动包含死代码消除和常量折叠
-  plugins: [deadCodeEliminationTransformer()]
+  plugins: [deadCodeEliminationTransformer()],
 });
 
 console.log('Generated Code:\n', result.code);

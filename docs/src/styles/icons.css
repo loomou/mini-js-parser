@@ -1,0 +1,14 @@
+[class^="i-"].bg,
+[class*=" i-"].bg {
+  background-size: 100% 100%;
+  background-color: transparent;
+}
+
+[class^="i-"]:not(.bg),
+[class*=" i-"]:not(.bg) {
+  -webkit-mask: var(--icon) no-repeat;
+  mask: var(--icon) no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  background-color: currentColor;
+}

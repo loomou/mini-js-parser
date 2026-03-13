@@ -5,6 +5,9 @@ on:
   push:
     branches: [main]
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -24,8 +27,5 @@ jobs:
       - name: Run oxlint
         run: pnpm lint:github
 
-      - name: Run tests
-        run: pnpm test:run
-
-      - name: Build project
-        run: pnpm build
+      - name: Run tests and build
+        run: pnpm run:action

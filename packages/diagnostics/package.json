@@ -9,6 +9,7 @@
   "module": "dist/diagnostics.esm.js",
   "scripts": {
     "test": "vitest",
+    "test:run": "vitest --run",
     "build": "rolldown -c rolldown.config.ts"
   }
 }

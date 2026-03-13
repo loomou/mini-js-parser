@@ -27,8 +27,5 @@ jobs:
       - name: Run oxlint
         run: pnpm lint:github
 
-      - name: Run tests
-        run: pnpm test:core
-
-      - name: Build project
-        run: pnpm build:core
+      - name: Run tests and build
+        run: pnpm run:action

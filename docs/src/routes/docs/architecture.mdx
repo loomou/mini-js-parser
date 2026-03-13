@@ -1,0 +1,60 @@
+# Mini JS Parser 文档
+
+本目录的目标是帮助 Parser 初学者从零理解这个项目的编译前端流水线，并能对照源码阅读与扩展。
+
+本项目实现了一条简化但完整的流水线：
+
+1. Scanner：源码字符流 → Token 流
+2. Parser：Token 流 → AST（抽象语法树）
+3. Binder：为 AST 补齐 parent、作用域 locals、符号引用、控制流可达性标注
+4. Transformer：以访问器模式重写 AST（常量折叠、死代码消除、重命名等）
+5. Emitter：AST → JavaScript 代码（可选 SourceMap、可选 minify）
+6. Compiler：把上述步骤编排成一个 `compile()` 入口（支持插件与内置 minify）
+
+## 学习路线（建议顺序）
+
+1. 先读 `ast.ts`：理解 AST 结构、SyntaxKind、Symbol/locals、FlowNode/FlowFlags
+2. 再读 `scanner.ts`：理解 token 化与 lookAhead
+3. 再读 `parser.ts`：重点理解递归下降与表达式优先级算法
+4. 再读 `binder.ts`：理解作用域、符号引用、不可达标注为何对优化必要
+5. 再读 `transformer.ts` 与 `factory.ts`：理解“访问并返回新节点”的重写框架
+6. 再读内置优化：constant folding / dead code elimination / rename identifiers
+7. 最后读 `emitter.ts` 与 `sourcemap.ts`：理解打印与映射编码
+8. 用 `compiler.ts` 串起来验证整体思路
+
+## 模块文档索引（不含 diagnostics）
+
+### 总体与编排
+
+- [compiler.ts](./compiler.ts.md)：compile() 的流水线编排（Parse/Bind/Transform/Emit）
+- [minifier.ts](./minifier.ts.md)：默认 minify pipeline 的组合与顺序
+
+### 基础数据模型
+
+- [ast.ts](./ast.ts.md)：SyntaxKind、AST、Symbol/locals、FlowNode/FlowFlags
+- [types.ts](./types.ts.md)：CharacterCodes 与 ErrorKind
+- [utilities.ts](./utilities.ts.md)：运算符优先级表与表达式解析支撑
+
+### 前端核心
+
+- [scanner.ts](./scanner.ts.md)：词法分析与 token 化策略
+- [parser.ts](./parser.ts.md)：递归下降 + 表达式优先级算法（precedence climbing）
+- [binder.ts](./binder.ts.md)：作用域/符号/可达性标注
+
+### 中端：变换框架与内置优化
+
+- [transformer.ts](./transformer.ts.md)：访问器与结构化拷贝，节点删除语义
+- [factory.ts](./factory.ts.md)：创建新节点的工厂方法
+- [transformers/index.ts](./transformers/index.ts.md)：内置 transformer 的组织与导出
+- [transformers/constantFolding.ts](./transformers/constantFolding.ts.md)：常量折叠
+- [transformers/deadCodeElimination.ts](./transformers/deadCodeElimination.ts.md)：死代码消除（可达性 + 活性分析）
+- [transformers/renameIdentifiers.ts](./transformers/renameIdentifiers.ts.md)：重命名（基于作用域 locals）
+
+### 后端：代码生成
+
+- [emitter.ts](./emitter.ts.md)：Printer/Emitter 的递归打印与 minify
+- [sourcemap.ts](./sourcemap.ts.md)：SourceMap v3 的 mappings 编码
+
+### 错误报告适配层
+
+- [report.ts](./report.ts.md)：从 parser 错误到 diagnostics 报告的桥接（不展开 diagnostics 实现）

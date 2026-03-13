@@ -1,0 +1,8 @@
+{
+  "name": "@mini-js-parser/example",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "mini-js-parser": "workspace:*"
+  }
+}

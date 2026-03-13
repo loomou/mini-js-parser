@@ -2,13 +2,18 @@ name: CI
 
 on:
   pull_request:
+    paths:
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - '.github/workflows/ci.yaml'
   push:
     branches: [main]
     paths:
-    - 'packages/**'
-    - 'pnpm-lock.yaml'
-    - 'package.json'
-    - '.github/workflows/ci.yaml'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - '.github/workflows/ci.yaml'
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
